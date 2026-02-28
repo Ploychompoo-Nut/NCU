@@ -79,7 +79,7 @@ function SystemStatus() {
     return (
         <div className="system-status-section">
             {/* Processing Progress */}
-            <Card className="status-card" title={
+            <Card id="processing-status" className="status-card" title={
                 <span style={{ fontWeight: 600, fontSize: 16 }}>
                     ⚙️ Processing Status
                 </span>
@@ -108,7 +108,7 @@ function SystemStatus() {
             </Card>
 
             {/* Patient Summary Table */}
-            <Card className="table-card" title={
+            <Card id="patient-summary" className="table-card" title={
                 <span style={{ fontWeight: 600, fontSize: 16 }}>
                     📋 Patient Summary
                 </span>
@@ -124,7 +124,7 @@ function SystemStatus() {
             </Card>
 
             {/* System Logs */}
-            <Card className="logs-card" title={
+            <Card id="system-logs" className="logs-card" title={
                 <span style={{ fontWeight: 600, fontSize: 16 }}>
                     🗒️ System Logs
                 </span>
