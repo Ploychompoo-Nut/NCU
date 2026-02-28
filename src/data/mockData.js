@@ -58,27 +58,15 @@ export const patients = [
 ];
 
 export const metricsData = {
-  Patient_001: [
-    { metric: 'clDice', value: 0.92, fill: '#52c41a' },
-    { metric: 'Dice Score', value: 0.88, fill: '#1890ff' },
-    { metric: 'IoU', value: 0.81, fill: '#36cfc9' },
-  ],
-  Patient_002: [
-    { metric: 'clDice', value: 0.89, fill: '#52c41a' },
-    { metric: 'Dice Score', value: 0.85, fill: '#1890ff' },
-    { metric: 'IoU', value: 0.78, fill: '#36cfc9' },
-  ],
-  Patient_004: [
-    { metric: 'clDice', value: 0.45, fill: '#52c41a' },
-    { metric: 'Dice Score', value: 0.38, fill: '#1890ff' },
-    { metric: 'IoU', value: 0.30, fill: '#36cfc9' },
-  ],
-  Patient_005: [
-    { metric: 'clDice', value: 0.95, fill: '#52c41a' },
-    { metric: 'Dice Score', value: 0.91, fill: '#1890ff' },
-    { metric: 'IoU', value: 0.85, fill: '#36cfc9' },
-  ],
+  Patient_001: { clDice: 0.923, dice: 0.886, iou: 0.814 },
+  Patient_002: { clDice: 0.891, dice: 0.852, iou: 0.783 },
+  Patient_003: { clDice: 0.876, dice: 0.839, iou: 0.761 },
+  Patient_004: { clDice: 0.452, dice: 0.381, iou: 0.302 },
+  Patient_005: { clDice: 0.951, dice: 0.912, iou: 0.853 },
 };
+
+// Model average across all completed patients (ImageCAS dataset benchmark)
+export const modelAverage = { clDice: 0.879, dice: 0.842, iou: 0.781 };
 
 export const processingStatus = {
   patientId: 'Patient_003',

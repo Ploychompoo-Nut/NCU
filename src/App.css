@@ -325,67 +325,179 @@
 
 .metrics-card .ant-card-head {
   border-bottom: 1px solid #f0f0f0;
+  padding: 0 20px;
 }
 
-.chart-container {
-  padding-top: 8px;
-}
-
-.metrics-summary {
-  display: flex;
-  gap: 16px;
-  padding: 16px 0 0;
-  border-top: 1px solid #f5f5f5;
-  margin-top: 16px;
-  flex-wrap: wrap;
-}
-
-.metric-item {
+.metrics-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1;
-  min-width: 120px;
-  padding: 10px 14px;
-  background: #fafafa;
-  border-radius: 8px;
 }
 
-.metric-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
+.metrics-title {
+  font-weight: 600;
+  font-size: 15px;
+  color: #262626;
 }
 
-.metric-name {
-  font-size: 12px;
+.metrics-info-icon {
+  font-size: 14px;
   color: #8c8c8c;
-  flex: 1;
+  cursor: pointer;
+  transition: color 0.2s;
 }
 
-.metric-value {
-  font-size: 16px;
-  font-weight: 700;
+.metrics-info-icon:hover {
+  color: #1890ff;
 }
 
-/* Custom Tooltip */
-.custom-tooltip {
-  background: #ffffff;
-  border: 1px solid #f0f0f0;
-  border-radius: 8px;
-  padding: 10px 14px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.metrics-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
-.tooltip-label {
-  font-size: 13px;
-  color: #595959;
+.metrics-subtitle {
   margin-bottom: 4px;
 }
 
-.tooltip-value {
-  font-size: 14px;
+.chart-wrapper {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 4px 0;
+}
+
+/* Summary Cards */
+.metrics-summary-cards {
+  display: flex;
+  gap: 10px;
+  padding: 12px 0 0;
+  border-top: 1px solid #f5f5f5;
+  margin-top: 12px;
+}
+
+.summary-card {
+  flex: 1;
+  background: #fafbfc;
+  border-radius: 8px;
+  padding: 12px 14px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: box-shadow 0.2s;
+}
+
+.summary-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.summary-card-label {
+  font-size: 11px;
+  color: #8c8c8c;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summary-card-value {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+}
+
+.summary-card-trend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.summary-card-avg {
+  color: #bfbfbf;
+  font-size: 10px;
+}
+
+.trend-up {
+  color: #52c41a;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.trend-down {
+  color: #ff4d4f;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* Metrics Footer */
+.metrics-footer {
+  padding: 10px 0 0;
+  border-top: 1px solid #f5f5f5;
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* Custom Chart Tooltip */
+.metrics-tooltip {
+  background: #ffffff;
+  border: 1px solid #f0f0f0;
+  border-radius: 10px;
+  padding: 12px 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  min-width: 180px;
+}
+
+.metrics-tooltip-header {
+  font-size: 13px;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.metrics-tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+}
+
+.metrics-tooltip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.metrics-tooltip-name {
+  flex: 1;
+  font-size: 12px;
+  color: #595959;
+}
+
+.metrics-tooltip-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: #262626;
+  font-variant-numeric: tabular-nums;
+}
+
+.metrics-tooltip-desc {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid #f5f5f5;
+  font-size: 11px;
+  color: #8c8c8c;
+  line-height: 1.4;
 }
 
 /* ----- Bottom Section ----- */
@@ -515,8 +627,12 @@
     flex-wrap: wrap;
   }
 
-  .metrics-summary {
+  .metrics-summary-cards {
     flex-direction: column;
+  }
+
+  .summary-card-value {
+    font-size: 18px;
   }
 }
 
