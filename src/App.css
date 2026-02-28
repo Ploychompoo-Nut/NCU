@@ -1,0 +1,582 @@
+/* ==========================================
+   VascularAI Dashboard — Main Styles
+   ========================================== */
+
+/* ----- Layout ----- */
+.app-layout {
+  min-height: 100vh;
+}
+
+.app-sider {
+  position: fixed !important;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 100;
+  overflow: auto;
+  background: linear-gradient(180deg, #001529 0%, #002140 100%) !important;
+}
+
+.app-sider .ant-layout-sider-children {
+  display: flex;
+  flex-direction: column;
+}
+
+.main-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ----- Sider ----- */
+.sider-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 8px;
+}
+
+.sider-logo-icon {
+  font-size: 24px;
+  color: #ff6b6b;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.sider-logo-text {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
+.sider-menu {
+  flex: 1;
+  border-right: none !important;
+}
+
+.sider-menu .ant-menu-item {
+  margin: 4px 12px !important;
+  border-radius: 8px !important;
+  height: 44px !important;
+  line-height: 44px !important;
+}
+
+.sider-menu .ant-menu-item-selected {
+  background: rgba(224, 48, 64, 0.25) !important;
+}
+
+.sider-footer {
+  padding: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.server-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+}
+
+/* ----- Header ----- */
+.app-header {
+  background: #ffffff;
+  padding: 0 24px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #f0f0f0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  display: flex;
+  align-items: center;
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.app-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #262626;
+  letter-spacing: -0.3px;
+}
+
+.app-subtitle {
+  font-size: 12px;
+  color: #8c8c8c;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.header-icon {
+  font-size: 20px;
+  color: #595959;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.header-icon:hover {
+  color: #e03040;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.user-profile:hover {
+  background: #fafafa;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.user-name {
+  font-size: 13px;
+  color: #262626;
+}
+
+.user-role {
+  font-size: 11px;
+  color: #8c8c8c;
+}
+
+/* ----- Content Area ----- */
+.app-content {
+  background: #f5f6fa;
+  padding: 24px;
+  flex: 1;
+}
+
+.content-wrapper {
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* ----- Top Section: Viewer + Metrics ----- */
+.top-section {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.viewer-section {
+  flex: 0 0 60%;
+  min-width: 0;
+}
+
+.metrics-section {
+  flex: 0 0 calc(40% - 24px);
+  min-width: 0;
+}
+
+/* ----- 3D Viewer Card ----- */
+.viewer-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f0f0f0;
+  height: 100%;
+}
+
+.viewer-card .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.viewer-container {
+  position: relative;
+  height: 520px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.viewer-container canvas {
+  border-radius: 8px;
+}
+
+.viewer-overlay {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.viewer-hint {
+  background: rgba(0, 0, 0, 0.55);
+  color: rgba(255, 255, 255, 0.85);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  backdrop-filter: blur(8px);
+}
+
+.viewer-legend {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 10px 12px;
+  border-radius: 10px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.legend-title {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 2px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255, 255, 255, 0.8);
+  padding: 2px 0;
+  font-size: 11px;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 4px currentColor;
+}
+
+.legend-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 3px 0;
+}
+
+/* ----- Metrics Card ----- */
+.metrics-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f0f0f0;
+  height: 100%;
+}
+
+.metrics-card .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.chart-container {
+  padding-top: 8px;
+}
+
+.metrics-summary {
+  display: flex;
+  gap: 16px;
+  padding: 16px 0 0;
+  border-top: 1px solid #f5f5f5;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.metric-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 120px;
+  padding: 10px 14px;
+  background: #fafafa;
+  border-radius: 8px;
+}
+
+.metric-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.metric-name {
+  font-size: 12px;
+  color: #8c8c8c;
+  flex: 1;
+}
+
+.metric-value {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Custom Tooltip */
+.custom-tooltip {
+  background: #ffffff;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.tooltip-label {
+  font-size: 13px;
+  color: #595959;
+  margin-bottom: 4px;
+}
+
+.tooltip-value {
+  font-size: 14px;
+}
+
+/* ----- Bottom Section ----- */
+.bottom-section {
+  min-width: 0;
+}
+
+.system-status-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.status-card,
+.table-card,
+.logs-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f0f0f0;
+}
+
+.status-card .ant-card-head,
+.table-card .ant-card-head,
+.logs-card .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.processing-info {
+  padding: 8px 0;
+}
+
+.processing-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+/* ----- Logs ----- */
+.logs-container {
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.log-entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #fafafa;
+}
+
+.log-entry:last-child {
+  border-bottom: none;
+}
+
+.log-time {
+  font-size: 12px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  min-width: 70px;
+}
+
+.log-message {
+  font-size: 13px;
+  color: #595959;
+}
+
+/* ----- Footer ----- */
+.app-footer {
+  background: #ffffff;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.footer-left,
+.footer-center,
+.footer-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.footer-text {
+  font-size: 12px;
+}
+
+/* ----- Responsive ----- */
+@media (max-width: 1200px) {
+  .top-section {
+    flex-direction: column;
+  }
+
+  .viewer-section,
+  .metrics-section {
+    flex: 1 1 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-layout {
+    margin-left: 0 !important;
+  }
+
+  .app-content {
+    padding: 16px;
+  }
+
+  .app-footer {
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .viewer-container {
+    height: 300px;
+  }
+
+  .user-info {
+    display: none;
+  }
+
+  .log-entry {
+    flex-wrap: wrap;
+  }
+
+  .metrics-summary {
+    flex-direction: column;
+  }
+}
+
+/* ----- Ant Design Overrides ----- */
+.ant-table-wrapper .ant-table {
+  border-radius: 8px;
+}
+
+.ant-table-wrapper .ant-table-thead>tr>th {
+  background: #fafafa;
+  font-weight: 600;
+  font-size: 13px;
+  color: #595959;
+}
+
+.ant-progress-bg {
+  border-radius: 6px !important;
+}
+
+.ant-card-head-title {
+  font-size: 16px !important;
+}
+
+/* ----- Animations ----- */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.viewer-card,
+.metrics-card,
+.status-card,
+.table-card,
+.logs-card {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.viewer-card {
+  animation-delay: 0s;
+}
+
+.metrics-card {
+  animation-delay: 0.1s;
+}
+
+.status-card {
+  animation-delay: 0.2s;
+}
+
+.table-card {
+  animation-delay: 0.3s;
+}
+
+.logs-card {
+  animation-delay: 0.4s;
+}
