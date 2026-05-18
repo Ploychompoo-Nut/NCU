@@ -1,5 +1,5 @@
 /* ==========================================
-   VascularAI Dashboard — Main Styles
+   HealthScan Dashboard — Main Styles
    ========================================== */
 
 /* ----- Layout ----- */
@@ -41,8 +41,9 @@
 
 .sider-logo-icon {
   font-size: 24px;
-  color: #ff6b6b;
+  color: #36cfc9;
   animation: pulse 2s infinite;
+  flex-shrink: 0;
 }
 
 @keyframes pulse {
@@ -58,10 +59,11 @@
 }
 
 .sider-logo-text {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: #ffffff;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
 }
 
 .sider-menu {
@@ -392,6 +394,64 @@
   height: 1px;
   background: rgba(255, 255, 255, 0.12);
   margin: 3px 0;
+}
+
+/* Model Loading Spinner */
+.model-loading {
+  text-align: center;
+  color: white;
+  pointer-events: none;
+}
+
+.model-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #ff4466;
+  border-radius: 50%;
+  animation: modelSpin 1s linear infinite;
+  margin: 0 auto 12px;
+}
+
+@keyframes modelSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.model-loading-text {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.model-loading-sub {
+  font-size: 11px;
+  opacity: 0.5;
+}
+
+/* Placeholder label */
+.model-placeholder-label {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  padding: 16px 24px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Alert inside viewer card */
+.model-alert .ant-alert-message {
+  font-size: 12px;
+}
+
+.model-alert code {
+  font-size: 11px;
+  background: #f5f5f5;
+  padding: 1px 4px;
+  border-radius: 3px;
 }
 
 /* ----- Metrics Card ----- */
@@ -1374,5 +1434,448 @@
 
   .sl-search {
     width: 100%;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PATIENT DETAILS PAGE (Refactored)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.pd-page {
+  padding: 20px 24px 32px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* ── Page Header ─────────────────────────────────────────────────────────── */
+.pd-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pd-header-left {
+  display: flex;
+  align-items: center;
+}
+
+.pd-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Upload mode segmented control */
+.pd-upload-mode {
+  border-radius: 8px !important;
+}
+.pd-upload-mode .ant-segmented-item {
+  border-radius: 6px !important;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Upload button — blue gradient */
+.pd-upload-btn {
+  background: linear-gradient(135deg, #1677ff 0%, #4096ff 100%) !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-weight: 600;
+  font-size: 14px;
+  height: 38px;
+  padding: 0 20px;
+  box-shadow: 0 4px 14px rgba(22, 119, 255, 0.35);
+  transition: all 0.25s ease;
+}
+.pd-upload-btn:hover {
+  box-shadow: 0 6px 20px rgba(22, 119, 255, 0.50) !important;
+  transform: translateY(-1px);
+}
+
+/* ── Compact Metrics Strip ───────────────────────────────────────────────── */
+.pd-metrics-strip {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.pd-metric-chip {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.pd-metric-chip:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.pd-metric-chip-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.pd-metric-chip-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.pd-metric-chip-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #8c8c8c;
+  white-space: nowrap;
+}
+
+.pd-metric-chip-value {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pd-metric-chip-unit {
+  font-size: 12px;
+  font-weight: 500;
+  color: #8c8c8c;
+}
+
+/* Chip color variants */
+.pd-metric-chip--success .pd-metric-chip-icon { color: #52c41a; }
+.pd-metric-chip--success .pd-metric-chip-value { color: #389e0d; }
+.pd-metric-chip--success { border-left: 3px solid #52c41a; }
+
+.pd-metric-chip--info .pd-metric-chip-icon { color: #1890ff; }
+.pd-metric-chip--info .pd-metric-chip-value { color: #096dd9; }
+.pd-metric-chip--info { border-left: 3px solid #1890ff; }
+
+.pd-metric-chip--danger .pd-metric-chip-icon { color: #ff4d4f; }
+.pd-metric-chip--danger .pd-metric-chip-value { color: #cf1322; }
+.pd-metric-chip--danger {
+  border-left: 3px solid #ff4d4f;
+  background: linear-gradient(135deg, #fff1f0 0%, #ffffff 100%);
+}
+
+/* ── View Cards ──────────────────────────────────────────────────────────── */
+.pd-view-card {
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e8e8ee;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  transition: box-shadow 0.3s;
+  animation: fadeIn 0.5s ease-out;
+}
+.pd-view-card:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.10);
+}
+
+.pd-view-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafbfc;
+}
+
+.pd-view-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.pd-view-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pd-view-card-body {
+  position: relative;
+  height: calc(100vh - 310px);
+  min-height: 420px;
+  max-height: 640px;
+  background: #0a0a0f;
+  display: flex;
+  flex-direction: column;
+}
+
+.pd-view-loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0a0a0f;
+}
+
+/* Dataset file selector */
+.pd-dataset-select {
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid #d9d9d9;
+  background: #fff;
+  font-size: 12px;
+  color: #434343;
+  cursor: pointer;
+  max-width: 240px;
+  transition: border-color 0.2s;
+}
+.pd-dataset-select:hover {
+  border-color: #1890ff;
+}
+.pd-dataset-select:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.15);
+}
+
+/* Maximize / Expand button */
+.pd-maximize-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background: #ffffff;
+  color: #595959;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.pd-maximize-btn:hover {
+  background: #1890ff;
+  color: #fff;
+  border-color: #1890ff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+}
+
+/* View labels */
+.pd-view-label {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+}
+.pd-view-label--bottom {
+  bottom: 14px;
+  left: 14px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 5px 14px;
+  border-radius: 20px;
+  backdrop-filter: blur(8px);
+}
+
+.pd-view-hint {
+  padding: 6px 0;
+  text-align: center;
+  background: #0a0a0f;
+}
+
+.pd-2d-canvas-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* ── Fullscreen Overlay ──────────────────────────────────────────────────── */
+.pd-fullscreen-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.70);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pd-overlayFadeIn 0.3s ease-out;
+}
+
+@keyframes pd-overlayFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(12px);
+  }
+}
+
+.pd-fullscreen-content {
+  width: calc(100vw - 60px);
+  height: calc(100vh - 60px);
+  max-width: 1600px;
+  background: #111118;
+  border-radius: 18px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  position: relative;
+  animation: pd-contentSlideIn 0.35s ease-out;
+}
+
+@keyframes pd-contentSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Close button */
+.pd-fullscreen-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 100;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  backdrop-filter: blur(8px);
+}
+.pd-fullscreen-close:hover {
+  background: rgba(255, 77, 79, 0.85);
+  border-color: rgba(255, 77, 79, 0.9);
+  color: #fff;
+  transform: rotate(90deg);
+}
+
+/* Header inside fullscreen */
+.pd-fullscreen-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 60px 14px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+}
+
+.pd-fullscreen-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.2px;
+}
+
+.pd-fullscreen-select {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  cursor: pointer;
+  max-width: 300px;
+  transition: border-color 0.2s;
+}
+.pd-fullscreen-select:hover {
+  border-color: rgba(255, 255, 255, 0.30);
+}
+.pd-fullscreen-select:focus {
+  outline: none;
+  border-color: #1890ff;
+}
+.pd-fullscreen-select option {
+  background: #1a1a2e;
+  color: #e0e0e0;
+}
+
+/* Canvas area in fullscreen */
+.pd-fullscreen-canvas {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Labels in fullscreen */
+.pd-fullscreen-label {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 6px 16px;
+  border-radius: 20px;
+  backdrop-filter: blur(8px);
+  z-index: 10;
+}
+
+.pd-fullscreen-hint {
+  padding: 8px 0;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+}
+
+/* ── Responsive Overrides ────────────────────────────────────────────────── */
+@media (max-width: 992px) {
+  .pd-view-card-body {
+    height: 380px;
+    min-height: 320px;
+  }
+  .pd-metrics-strip {
+    flex-direction: column;
+  }
+  .pd-metric-chip {
+    min-width: unset;
+  }
+}
+
+@media (max-width: 768px) {
+  .pd-page {
+    padding: 16px;
+  }
+  .pd-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .pd-view-card-body {
+    height: 300px;
+    min-height: 260px;
+  }
+  .pd-fullscreen-content {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+  }
+  .pd-metric-chip-value {
+    font-size: 16px;
   }
 }

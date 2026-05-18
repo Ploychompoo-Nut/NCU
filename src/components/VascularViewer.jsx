@@ -1,201 +1,271 @@
-import React, { useRef, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+/**
+ * 3D Vascular Model Viewer — GLB Model Loader
+ *
+ * This viewer loads an external .glb/.gltf 3D model instead of
+ * procedurally generating vessels. It applies neon glow materials,
+ * dark blue scene lighting, and post-processing bloom effects.
+ *
+ * ─── HOW TO USE ────────────────────────────────────────────────
+ * 1. Download a Human Vascular System .glb model from:
+ *    • Sketchfab: https://sketchfab.com/search?q=human+vascular+system&type=models
+ *    • CGTrader:  https://www.cgtrader.com/free-3d-models/character/anatomy
+ *    • TurboSquid: https://www.turbosquid.com/Search/3D-Models/free/vascular
+ *
+ * 2. Place the .glb file at:
+ *       public/models/vascular_system.glb
+ *
+ * 3. The viewer will auto-detect and load it on page refresh.
+ *
+ * Supported formats: .glb, .gltf
+ * ───────────────────────────────────────────────────────────────
+ */
+import React, { useRef, Suspense, useState, useEffect, useMemo } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { OrbitControls, useGLTF, Html, Environment, ContactShadows } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
-import { Card, Button, Tooltip, Space } from 'antd';
-import { DownloadOutlined } from '@ant-design/icons';
+import { Card, Button, Tooltip, Space, Alert, Typography, Spin } from 'antd';
+import { DownloadOutlined, InfoCircleOutlined, FolderOpenOutlined } from '@ant-design/icons';
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { generateFullBodyVasculature } from '../data/vascularAnatomy';
 
-// ─── Depth-graded color palettes ───────────────────────────────────────────
-const ARTERY_COLORS = [
-    new THREE.Color('#9b1b30'),   // depth 0 — aorta (deep crimson)
-    new THREE.Color('#c0392b'),   // depth 1 — large arteries
-    new THREE.Color('#e04040'),   // depth 2 — medium arteries
-    new THREE.Color('#e86c5a'),   // depth 3 — small arteries
-    new THREE.Color('#f5a090'),   // depth 4 — capillaries
-];
+const { Text } = Typography;
 
-const VEIN_COLORS = [
-    new THREE.Color('#1a2d5a'),   // depth 0 — vena cava (deep navy)
-    new THREE.Color('#1e4a8a'),   // depth 1 — large veins
-    new THREE.Color('#2b6cb0'),   // depth 2 — medium veins
-    new THREE.Color('#4a90d9'),   // depth 3 — small veins
-    new THREE.Color('#7eb8e8'),   // depth 4 — venous capillaries
-];
+// ─── Model path ────────────────────────────────────────────────────────────
+const MODEL_PATH = '/models/vascular_system.glb';
 
-// ─── Subtle organic displacement ───────────────────────────────────────────
-function applySubtleDisplacement(geometry, intensity, seed) {
-    const pos = geometry.attributes.position;
-    const normal = geometry.attributes.normal;
-    const count = pos.count;
 
-    for (let i = 0; i < count; i++) {
-        const x = pos.getX(i);
-        const y = pos.getY(i);
-        const z = pos.getZ(i);
+// ─── Loading Spinner (shown while model loads) ─────────────────────────────
+function LoadingIndicator() {
+    return (
+        <Html center>
+            <div className="model-loading">
+                <div className="model-loading-spinner" />
+                <div className="model-loading-text">Loading 3D Model...</div>
+                <div className="model-loading-sub">Preparing vascular visualization</div>
+            </div>
+        </Html>
+    );
+}
 
-        // Low-frequency organic bumps only (no high-frequency noise)
-        const disp = Math.sin(y * 8.0 + seed) * Math.cos(x * 6.0 + seed * 0.7) * intensity
-            + Math.sin(y * 16.0 + z * 12.0 + seed * 1.5) * intensity * 0.3;
 
-        const nx = normal.getX(i);
-        const ny = normal.getY(i);
-        const nz = normal.getZ(i);
+// ─── Apply neon/glow materials to loaded model ─────────────────────────────
+function applyVascularMaterials(scene) {
+    scene.traverse((child) => {
+        if (child.isMesh) {
+            const oldMat = child.material;
 
-        pos.setXYZ(i, x + nx * disp, y + ny * disp, z + nz * disp);
+            // Detect arteries vs veins by material name, mesh name, or color
+            const name = (child.name + ' ' + (oldMat?.name || '')).toLowerCase();
+            const isVein = name.includes('vein') || name.includes('venous') || name.includes('blue');
+            const isArtery = name.includes('arter') || name.includes('aort') || name.includes('red');
+
+            // Default: detect by existing color or treat as artery
+            let baseColor, emissiveColor;
+            if (isVein) {
+                baseColor = new THREE.Color('#1a5ca8');
+                emissiveColor = new THREE.Color('#2196f3');
+            } else if (isArtery) {
+                baseColor = new THREE.Color('#8b1a1a');
+                emissiveColor = new THREE.Color('#ff3333');
+            } else {
+                // Auto-detect by original material color
+                const origColor = oldMat?.color;
+                if (origColor) {
+                    const hsl = {};
+                    origColor.getHSL(hsl);
+                    if (hsl.h > 0.55 && hsl.h < 0.75) {
+                        // Blue-ish → vein
+                        baseColor = new THREE.Color('#1a5ca8');
+                        emissiveColor = new THREE.Color('#2196f3');
+                    } else {
+                        // Everything else → artery (warm tones)
+                        baseColor = new THREE.Color('#8b1a1a');
+                        emissiveColor = new THREE.Color('#ff3333');
+                    }
+                } else {
+                    baseColor = new THREE.Color('#991122');
+                    emissiveColor = new THREE.Color('#ee2244');
+                }
+            }
+
+            child.material = new THREE.MeshPhysicalMaterial({
+                color: baseColor,
+                emissive: emissiveColor,
+                emissiveIntensity: 0.6,
+                roughness: 0.35,
+                metalness: 0.15,
+                transparent: true,
+                opacity: 0.92,
+                clearcoat: 0.4,
+                clearcoatRoughness: 0.2,
+                side: THREE.DoubleSide,
+                envMapIntensity: 0.3,
+            });
+
+            // Ensure proper rendering
+            child.castShadow = true;
+            child.receiveShadow = true;
+        }
+    });
+}
+
+
+// ─── Auto-center and scale model to fit viewport ──────────────────────────
+function normalizeModel(scene) {
+    const box = new THREE.Box3().setFromObject(scene);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+
+    // Center the model
+    scene.position.sub(center);
+
+    // Scale to fit within ~8 units
+    const maxDim = Math.max(size.x, size.y, size.z);
+    if (maxDim > 0) {
+        const scale = 8 / maxDim;
+        scene.scale.multiplyScalar(scale);
     }
-
-    pos.needsUpdate = true;
-    geometry.computeVertexNormals();
-}
-
-// ─── Build merged geometry batches for efficient rendering ─────────────────
-function buildBatches(vessels) {
-    // Group by: type (artery/vein) × size tier (major/medium/small)
-    const groups = {
-        arteryMajor: [],
-        arteryMedium: [],
-        arterySmall: [],
-        veinMajor: [],
-        veinMedium: [],
-        veinSmall: [],
-    };
-
-    vessels.forEach((v, idx) => {
-        const curve = new THREE.CatmullRomCurve3(v.points);
-        const segments = Math.max(20, v.points.length * 2);
-        const radialSeg = v.depth >= 3 ? 6 : v.depth >= 2 ? 8 : 12;
-        const geo = new THREE.TubeGeometry(curve, segments, v.radius, radialSeg, false);
-
-        // Apply subtle surface variation
-        if (v.radius > 0.02) {
-            applySubtleDisplacement(geo, v.radius * 0.12, idx * 13.7);
-        }
-
-        // Apply per-vertex colors
-        const palette = v.type === 'artery' ? ARTERY_COLORS : VEIN_COLORS;
-        const baseColor = palette[Math.min(v.depth, palette.length - 1)];
-        const colors = [];
-        const count = geo.attributes.position.count;
-        for (let i = 0; i < count; i++) {
-            const vary = 0.94 + (Math.sin(i * 0.37 + idx * 5.1) * 0.5 + 0.5) * 0.12;
-            colors.push(baseColor.r * vary, baseColor.g * vary, baseColor.b * vary);
-        }
-        geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-
-        // Classify
-        const key = v.type === 'artery'
-            ? (v.depth <= 1 ? 'arteryMajor' : v.depth <= 2 ? 'arteryMedium' : 'arterySmall')
-            : (v.depth <= 1 ? 'veinMajor' : v.depth <= 2 ? 'veinMedium' : 'veinSmall');
-        groups[key].push(geo);
-    });
-
-    // Merge each group into a single BufferGeometry
-    const result = [];
-    const materialParams = {
-        arteryMajor: { emissiveIntensity: 0.6, roughness: 0.32, opacity: 0.96, transmission: 0.03, thickness: 2.5 },
-        arteryMedium: { emissiveIntensity: 0.45, roughness: 0.38, opacity: 0.90, transmission: 0.06, thickness: 1.5 },
-        arterySmall: { emissiveIntensity: 0.3, roughness: 0.45, opacity: 0.75, transmission: 0.10, thickness: 0.8 },
-        veinMajor: { emissiveIntensity: 0.45, roughness: 0.38, opacity: 0.93, transmission: 0.05, thickness: 2.0 },
-        veinMedium: { emissiveIntensity: 0.35, roughness: 0.42, opacity: 0.85, transmission: 0.08, thickness: 1.2 },
-        veinSmall: { emissiveIntensity: 0.25, roughness: 0.5, opacity: 0.70, transmission: 0.12, thickness: 0.6 },
-    };
-
-    Object.entries(groups).forEach(([key, geos]) => {
-        if (geos.length === 0) return;
-        const merged = mergeGeometries(geos, false);
-        if (merged) {
-            result.push({ geometry: merged, ...materialParams[key] });
-            geos.forEach(g => g.dispose());
-        }
-    });
-
-    return result;
 }
 
 
-// ─── Vascular System Mesh Component ────────────────────────────────────────
-function VascularSystem() {
+// ─── The loaded GLB model component ────────────────────────────────────────
+function VascularModel() {
+    const { scene } = useGLTF(MODEL_PATH);
     const groupRef = useRef();
-    const batches = useMemo(() => {
-        const vessels = generateFullBodyVasculature();
-        return buildBatches(vessels);
-    }, []);
 
+    // Apply materials and normalize on load
+    useMemo(() => {
+        normalizeModel(scene);
+        applyVascularMaterials(scene);
+    }, [scene]);
+
+    // Gentle sway animation
     useFrame((state) => {
         if (groupRef.current) {
-            groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.1) * 0.03;
+            groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.08) * 0.02;
         }
     });
 
     return (
-        <group ref={groupRef} position={[0, -8, 0]}>
-            {/* Center the model: body goes from y=0..16, so shift down by 8 */}
-            {batches.map((batch, i) => (
-                <mesh key={i} geometry={batch.geometry}>
-                    <meshPhysicalMaterial
-                        vertexColors
-                        emissive="#ffffff"
-                        emissiveIntensity={batch.emissiveIntensity}
-                        roughness={batch.roughness}
-                        metalness={0.02}
-                        clearcoat={0.45}
-                        clearcoatRoughness={0.25}
-                        transparent
-                        opacity={batch.opacity}
-                        transmission={batch.transmission}
-                        thickness={batch.thickness}
-                        ior={1.38}
-                        sheen={0.2}
-                        sheenRoughness={0.5}
-                        sheenColor="#ffcccc"
-                        side={THREE.DoubleSide}
-                        envMapIntensity={0.1}
-                    />
-                </mesh>
-            ))}
+        <group ref={groupRef}>
+            <primitive object={scene} />
         </group>
     );
 }
 
 
-// ─── Studio Lighting for Medical Visualization ─────────────────────────────
-function StudioLighting() {
+// ─── Scene lighting (dark blue ambient + chest point light) ────────────────
+function SceneLighting() {
     return (
         <>
-            {/* Low ambient */}
-            <ambientLight intensity={0.12} color="#0a0a15" />
+            {/* Deep blue ambient */}
+            <ambientLight intensity={0.15} color="#1a237e" />
 
-            {/* Key: top-right warm clinical light */}
-            <directionalLight position={[6, 14, 10]} intensity={2.0} color="#f5f0e8" />
+            {/* Key light — clinical white-blue */}
+            <directionalLight position={[5, 10, 8]} intensity={1.8} color="#e8eaf6" />
 
-            {/* Fill: left side cool */}
-            <directionalLight position={[-8, 6, 4]} intensity={0.6} color="#4a80cc" />
+            {/* Fill — cool blue side */}
+            <directionalLight position={[-6, 4, -4]} intensity={0.5} color="#42a5f5" />
 
-            {/* Back/rim: subtle purple */}
-            <directionalLight position={[0, -4, -12]} intensity={0.35} color="#7c3aed" />
+            {/* Rim — purple backlight */}
+            <directionalLight position={[0, -5, -8]} intensity={0.3} color="#7c4dff" />
 
-            {/* Top scan beam */}
-            <spotLight position={[0, 18, 2]} angle={0.3} penumbra={0.7} intensity={1.0} color="#d4c8f0" />
+            {/* Center chest point light (as in reference image) */}
+            <pointLight position={[0, 1, 2]} intensity={1.2} color="#ff4444" distance={15} decay={2} />
 
-            {/* Anatomical region lights */}
-            <pointLight position={[0, 4, 3]} intensity={0.7} color="#ff5252" distance={12} decay={2} />  {/* Heart */}
-            <pointLight position={[0, 8, 2]} intensity={0.5} color="#ffa726" distance={10} decay={2} />  {/* Head */}
-            <pointLight position={[3, 3, 2]} intensity={0.4} color="#ef5350" distance={10} decay={2} />  {/* R. arm */}
-            <pointLight position={[-3, 3, 2]} intensity={0.4} color="#42a5f5" distance={10} decay={2} /> {/* L. arm */}
-            <pointLight position={[1.5, -4, 2]} intensity={0.35} color="#ec407a" distance={10} decay={2} /> {/* R. leg */}
-            <pointLight position={[-1.5, -4, 2]} intensity={0.35} color="#5c6bc0" distance={10} decay={2} /> {/* L. leg */}
-            <pointLight position={[0, 2, -3]} intensity={0.25} color="#9575cd" distance={8} decay={2} />  {/* Back fill */}
-            <pointLight position={[0, -7, 2]} intensity={0.2} color="#ff8a65" distance={8} decay={2} />   {/* Feet */}
+            {/* Secondary points for depth */}
+            <pointLight position={[3, 4, 3]} intensity={0.5} color="#ff6b6b" distance={12} decay={2} />
+            <pointLight position={[-3, 4, 3]} intensity={0.4} color="#448aff" distance={12} decay={2} />
+            <pointLight position={[0, -4, 2]} intensity={0.3} color="#e040fb" distance={10} decay={2} />
+            <pointLight position={[0, 6, -2]} intensity={0.3} color="#80d8ff" distance={10} decay={2} />
         </>
+    );
+}
+
+
+// ─── Placeholder UI when no model file exists ──────────────────────────────
+function PlaceholderScene() {
+    const meshRef = useRef();
+
+    useFrame((state) => {
+        if (meshRef.current) {
+            meshRef.current.rotation.y = state.clock.elapsedTime * 0.5;
+            meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.3) * 0.1;
+        }
+    });
+
+    return (
+        <group>
+            {/* Central pulsing sphere as heart placeholder */}
+            <mesh ref={meshRef} position={[0, 0, 0]}>
+                <icosahedronGeometry args={[1.5, 3]} />
+                <meshPhysicalMaterial
+                    color="#661122"
+                    emissive="#ff2244"
+                    emissiveIntensity={0.8}
+                    wireframe
+                    transparent
+                    opacity={0.6}
+                />
+            </mesh>
+
+            {/* Ring effect */}
+            <mesh rotation={[Math.PI / 2, 0, 0]}>
+                <torusGeometry args={[2.5, 0.02, 16, 100]} />
+                <meshBasicMaterial color="#ff4466" transparent opacity={0.4} />
+            </mesh>
+            <mesh rotation={[Math.PI / 3, Math.PI / 4, 0]}>
+                <torusGeometry args={[3, 0.015, 16, 100]} />
+                <meshBasicMaterial color="#4488ff" transparent opacity={0.3} />
+            </mesh>
+
+            <Html center position={[0, -3.5, 0]}>
+                <div className="model-placeholder-label">
+                    <div style={{ fontSize: 28, marginBottom: 8 }}>🫀</div>
+                    <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>No Model Loaded</div>
+                    <div style={{ fontSize: 11, opacity: 0.7, maxWidth: 220, lineHeight: 1.4 }}>
+                        Place a .glb file at<br />
+                        <code style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: 4, fontSize: 10 }}>
+                            public/models/vascular_system.glb
+                        </code>
+                    </div>
+                </div>
+            </Html>
+        </group>
+    );
+}
+
+
+// ─── Model wrapper with error boundary ─────────────────────────────────────
+function ModelOrPlaceholder({ modelExists }) {
+    if (!modelExists) {
+        return <PlaceholderScene />;
+    }
+
+    return (
+        <Suspense fallback={<LoadingIndicator />}>
+            <VascularModel />
+        </Suspense>
     );
 }
 
 
 // ─── Main Viewer Component ─────────────────────────────────────────────────
 function VascularViewer() {
+    const [modelExists, setModelExists] = useState(false);
+    const [checking, setChecking] = useState(true);
+
+    // Check if model file exists
+    useEffect(() => {
+        fetch(MODEL_PATH, { method: 'HEAD' })
+            .then(res => {
+                setModelExists(res.ok && res.headers.get('content-type')?.includes('model'));
+                // Also check for generic octet-stream or gltf types
+                if (res.ok) setModelExists(true);
+            })
+            .catch(() => setModelExists(false))
+            .finally(() => setChecking(false));
+    }, []);
+
     const handleDownload = (format) => {
         const link = document.createElement('a');
         link.download = `vascular_model.${format}`;
@@ -236,41 +306,57 @@ function VascularViewer() {
                 </Space>
             }
         >
+            {/* Model path info */}
+            {!checking && !modelExists && (
+                <Alert
+                    type="info"
+                    showIcon
+                    icon={<FolderOpenOutlined />}
+                    className="model-alert"
+                    message={
+                        <span style={{ fontSize: 12 }}>
+                            Place your <code>.glb</code> model at <code>public/models/vascular_system.glb</code> and refresh
+                        </span>
+                    }
+                    style={{ marginBottom: 12, borderRadius: 8 }}
+                />
+            )}
+
             <div className="viewer-container">
                 <Canvas
-                    camera={{ position: [0, 2, 18], fov: 45 }}
+                    camera={{ position: [0, 0, 14], fov: 45 }}
                     gl={{
                         antialias: true,
                         toneMapping: THREE.ACESFilmicToneMapping,
-                        toneMappingExposure: 1.15,
+                        toneMappingExposure: 1.1,
                         powerPreference: 'high-performance',
                     }}
                     dpr={[1, 2]}
-                    style={{ background: 'radial-gradient(ellipse at center, #080c18 0%, #020305 100%)' }}
+                    style={{ background: 'radial-gradient(ellipse at center, #0d1b3e 0%, #050a1a 100%)' }}
                 >
-                    <StudioLighting />
-                    <VascularSystem />
+                    <SceneLighting />
+                    <ModelOrPlaceholder modelExists={modelExists} />
                     <OrbitControls
-                        enablePan={true}
-                        enableZoom={true}
-                        enableRotate={true}
-                        autoRotate={true}
+                        enablePan
+                        enableZoom
+                        enableRotate
+                        autoRotate
                         autoRotateSpeed={0.5}
-                        minDistance={6}
+                        minDistance={4}
                         maxDistance={30}
                         target={[0, 0, 0]}
                     />
 
-                    {/* Post-processing */}
+                    {/* Post-processing: neon glow */}
                     <EffectComposer>
                         <Bloom
-                            intensity={0.4}
-                            luminanceThreshold={0.18}
-                            luminanceSmoothing={0.92}
+                            intensity={0.55}
+                            luminanceThreshold={0.12}
+                            luminanceSmoothing={0.9}
                             mipmapBlur
-                            radius={0.75}
+                            radius={0.85}
                         />
-                        <Vignette eskil={false} offset={0.1} darkness={0.85} />
+                        <Vignette eskil={false} offset={0.1} darkness={0.88} />
                     </EffectComposer>
                 </Canvas>
 
@@ -278,17 +364,13 @@ function VascularViewer() {
                     <span className="viewer-hint">🖱️ Drag to rotate · Scroll to zoom</span>
                 </div>
                 <div className="viewer-legend">
-                    <span className="legend-title">Arteries</span>
-                    <span className="legend-item"><span className="legend-dot" style={{ background: '#9b1b30' }} />Aorta</span>
-                    <span className="legend-item"><span className="legend-dot" style={{ background: '#c0392b' }} />Major Artery</span>
-                    <span className="legend-item"><span className="legend-dot" style={{ background: '#e04040' }} />Medium Artery</span>
-                    <span className="legend-item"><span className="legend-dot" style={{ background: '#f5a090' }} />Capillary</span>
+                    <span className="legend-title">Vessel Types</span>
+                    <span className="legend-item"><span className="legend-dot" style={{ background: '#ff3333', boxShadow: '0 0 6px #ff3333' }} />Arteries</span>
+                    <span className="legend-item"><span className="legend-dot" style={{ background: '#2196f3', boxShadow: '0 0 6px #2196f3' }} />Veins</span>
                     <span className="legend-divider" />
-                    <span className="legend-title">Veins</span>
-                    <span className="legend-item"><span className="legend-dot" style={{ background: '#1a2d5a' }} />Vena Cava</span>
-                    <span className="legend-item"><span className="legend-dot" style={{ background: '#1e4a8a' }} />Major Vein</span>
-                    <span className="legend-item"><span className="legend-dot" style={{ background: '#2b6cb0' }} />Medium Vein</span>
-                    <span className="legend-item"><span className="legend-dot" style={{ background: '#7eb8e8' }} />Capillary</span>
+                    <span className="legend-item" style={{ fontSize: 10, opacity: 0.6 }}>
+                        {modelExists ? '✓ Model loaded' : '⚠ Placeholder mode'}
+                    </span>
                 </div>
             </div>
         </Card>

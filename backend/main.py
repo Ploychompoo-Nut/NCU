@@ -1,11 +1,11 @@
-# FastAPI Backend for VascularAI Dashboard
+# FastAPI Backend for HealthScan Dashboard
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 
-app = FastAPI(title="VascularAI API", version="1.2.0")
+app = FastAPI(title="HealthScan API", version="1.2.0")
 
 # CORS
 app.add_middleware(
@@ -52,7 +52,7 @@ metrics_data = {
 
 @app.get("/")
 def root():
-    return {"message": "VascularAI API v1.2.0", "status": "online"}
+    return {"message": "HealthScan API v1.2.0", "status": "online"}
 
 
 @app.get("/api/patients")

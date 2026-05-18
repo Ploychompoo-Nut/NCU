@@ -1,4 +1,4 @@
-// Mock data for VascularAI Dashboard
+// Mock data for HealthScan Dashboard
 
 export const patients = [
   {

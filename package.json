@@ -7,15 +7,18 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "backend": "SwinUNETR/venv/bin/python backend_py/main.py"
   },
   "dependencies": {
     "@ant-design/icons": "^6.1.0",
+    "@niivue/niivue": "^0.68.2",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
     "@react-three/postprocessing": "^3.0.4",
     "antd": "^6.3.1",
     "axios": "^1.13.6",
+    "puppeteer": "^24.43.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.13.1",

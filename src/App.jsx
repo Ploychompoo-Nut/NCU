@@ -5,12 +5,12 @@ import {
   DashboardOutlined,
   TeamOutlined,
   FileTextOutlined,
-  HeartOutlined,
 } from '@ant-design/icons';
 import AppHeader from './components/AppHeader';
 import DashboardPage from './pages/DashboardPage';
 import PatientQueuePage from './pages/PatientQueuePage';
 import SystemLogsPage from './pages/SystemLogsPage';
+import PatientDetailsPage from './pages/PatientDetailsPage';
 import { serverStatus } from './data/mockData';
 import './App.css';
 
@@ -89,8 +89,17 @@ function AppLayout() {
           onClick={() => { navigate('/'); }}
           style={{ cursor: 'pointer' }}
         >
-          <HeartOutlined className="sider-logo-icon" />
-          {!collapsed && <span className="sider-logo-text">VascularAI</span>}
+          <svg className="sider-logo-icon" width="28" height="28" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Mandible / Lower Jaw SVG */}
+            <path d="M32 8C24 8 18 12 15 18C12 24 10 30 10 36C10 40 12 44 16 46C18 47 20 48 22 48C24 48 26 47 27 45L28 42C29 39 30 38 32 38C34 38 35 39 36 42L37 45C38 47 40 48 42 48C44 48 46 47 48 46C52 44 54 40 54 36C54 30 52 24 49 18C46 12 40 8 32 8Z"
+              stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+            <path d="M20 28C20 26 21 24 23 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
+            <path d="M44 28C44 26 43 24 41 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
+            <circle cx="23" cy="30" r="2" fill="currentColor" opacity="0.5" />
+            <circle cx="41" cy="30" r="2" fill="currentColor" opacity="0.5" />
+            <path d="M26 36H38" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.4" />
+          </svg>
+          {!collapsed && <span className="sider-logo-text">MandibleScan 3D</span>}
         </div>
         <Menu
           theme="dark"
@@ -127,6 +136,7 @@ function AppLayout() {
           <Routes>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/patients" element={<PatientQueuePage />} />
+            <Route path="/patients/:id" element={<PatientDetailsPage />} />
             <Route path="/logs" element={<SystemLogsPage />} />
           </Routes>
         </Content>
@@ -135,7 +145,7 @@ function AppLayout() {
         <div className="app-footer">
           <div className="footer-left">
             <Text className="footer-text">
-              VascularAI Dashboard {serverStatus.version}
+              MandibleScan 3D {serverStatus.version}
             </Text>
             <Text className="footer-text" type="secondary">
               Model: {serverStatus.modelVersion}
@@ -153,7 +163,7 @@ function AppLayout() {
           </div>
           <div className="footer-right">
             <Text className="footer-text" type="secondary">
-              © 2026 VascularAI — NCU Research Lab
+              © 2026 MandibleScan 3D — NCU Research Lab
             </Text>
           </div>
         </div>

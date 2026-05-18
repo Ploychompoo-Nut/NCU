@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+SwinUNETR/
+
+#large files
+SwinUNETR/dataset
+SwinUNETR/Weights
+SwinUNETR/venv
+SwinUNETR/venv

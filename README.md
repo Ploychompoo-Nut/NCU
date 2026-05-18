@@ -1,16 +1,65 @@
-# React + Vite
+# HealthScan: Core 3D Reconstruction System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![React](https://img.shields.io/badge/React-19.2-blueviolet?logo=react)
+![Go](https://img.shields.io/badge/Go-1.21-00ADD8?logo=go)
+![FastAPI](https://img.shields.io/badge/FastAPI-1.2.0-009688?logo=fastapi)
 
-Currently, two official plugins are available:
+HealthScan is an advanced medical imaging dashboard and 2D-to-3D vascular reconstruction system. With an emphasis on high performance and a rich, glassmorphism-inspired UI, HealthScan allows medical professionals to queue patients, interact with 3D mesh projections seamlessly in-browser, and extract precise diagnostic metrics with zero wait time.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🏗 System Architecture
 
-## React Compiler
+HealthScan encompasses three modular components perfectly integrated for maximum edge-computing performance:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 1. Vision Frontend (`/src`)
+A stunning, responsive React/Vite web application built with **Ant Design**. It handles data visualization, UI tracking, and utilizes **React Three Fiber / Drei** for performing heavy WebGL-based rendering of 3D mathematical vessels natively in the client browser.
 
-## Expanding the ESLint configuration
+### 2. High-Performance Processing Node (`/backend_go`)
+A robust architecture using standard Go layout, built with the **Fiber** web framework. 
+- Utilizes **Gonum** for heavy linear algebra computations.
+- Leverages **GoCV** for C++ level computer vision interactions via Go.
+- Implements a parallel execution layer via a highly efficient Goroutine Worker Pool pattern to slash 3D coordinate point reconstruction latency drastically.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 3. Data Hub (`/backend`)
+A legacy lightweight Python FastAPI service handling mock configurations, testing environments, and historical patient status aggregation metrics.
+
+---
+
+## 🚀 Quickstart
+
+### Prerequisites
+- **Node.js** (v18+)
+- **Go** (v1.21+) - *Requires OpenCV installed locally for GoCV CGO compiling.*
+- **Python** (v3.9+)
+
+### Local Development
+
+1. **Frontend Server**
+    ```sh
+    npm install
+    npm run dev
+    ```
+    *Access at [http://localhost:5173](http://localhost:5173).*
+
+2. **Golang Worker Hub**
+    ```sh
+    cd backend_go
+    go mod tidy
+    go run cmd/server/main.go
+    ```
+    *API loads on port 8080.*
+
+3. **FastAPI Data Layer**
+    ```sh
+    cd backend
+    uvicorn main:app --reload --port 8000
+    ```
+
+---
+
+## 🎨 UI/UX Specifications
+- **Dynamic Glassmorphism**: Provides depth without compromising text accessibility.
+- **Real-time Pipeline**: Dynamic statistic cards track patients seamlessly from queueing to generation logic completion.
+- **Interactive 3D**: Granular point-cloud manipulation enabled natively in-app for surgical references.
+
+*Project architecture generated and documented by advanced AI engineering.*
