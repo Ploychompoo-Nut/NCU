@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Layout, Menu, Badge, Typography, ConfigProvider, theme } from 'antd';
 import {
   DashboardOutlined,
@@ -134,7 +134,7 @@ function AppLayout() {
         {/* Content — scrollable area */}
         <Content className="app-content">
           <Routes>
-            <Route path="/" element={<DashboardPage />} />
+            <Route path="/" element={<Navigate to="/patients/demo_patient" replace />} />
             <Route path="/patients" element={<PatientQueuePage />} />
             <Route path="/patients/:id" element={<PatientDetailsPage />} />
             <Route path="/logs" element={<SystemLogsPage />} />
