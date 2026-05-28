@@ -33,16 +33,15 @@ function AppHeader() {
                 <div className="logo-container">
                     <div className="logo-icon">
                         <svg width="32" height="32" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="32" cy="32" r="30" stroke="url(#mandGrad)" strokeWidth="2" fill="none" />
-                            <path d="M32 14C26 14 21 17 19 22C17 27 15 32 15 37C15 40 17 43 20 44.5C21.5 45.2 23 45.5 24.5 45.5C26.5 45.5 28 44.5 29 42.5L30 40C30.8 38 31.3 37 32 37C32.7 37 33.2 38 34 40L35 42.5C36 44.5 37.5 45.5 39.5 45.5C41 45.5 42.5 45.2 44 44.5C47 43 49 40 49 37C49 32 47 27 45 22C43 17 38 14 32 14Z"
-                                stroke="url(#mandGrad)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="url(#mandGrad)" fillOpacity="0.12" />
-                            <path d="M24 29C24 27.5 25 26 26.5 26" stroke="url(#mandGrad)" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
-                            <path d="M40 29C40 27.5 39 26 37.5 26" stroke="url(#mandGrad)" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
-                            <circle cx="26.5" cy="31" r="1.5" fill="url(#mandGrad)" opacity="0.4" />
-                            <circle cx="37.5" cy="31" r="1.5" fill="url(#mandGrad)" opacity="0.4" />
+                            <path d="M12 24 C10 36, 16 48, 24 54 C29 58, 35 58, 40 54 C48 48, 54 36, 52 24 C51 20, 47 18, 45 22 C43 26, 46 36, 41 44 C37 50, 27 50, 23 44 C18 36, 21 26, 19 22 C17 18, 13 20, 12 24 Z" stroke="url(#mandGrad)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="url(#mandGrad)" fillOpacity="0.12" />
+                            <path d="M19 22 C22 18, 24 24, 23 28 M45 22 C42 18, 40 24, 41 28" stroke="url(#mandGrad)" strokeWidth="2" strokeLinecap="round" />
+                            <path d="M22 42 C26 38, 38 38, 42 42" stroke="url(#mandGrad)" strokeWidth="2" strokeLinecap="round" />
+                            <path d="M25 40 L26 34 M29 39 L29 33 M32 39 L32 33 M35 39 L35 33 M39 40 L38 34" stroke="url(#mandGrad)" strokeWidth="1.5" strokeLinecap="round" />
+                            <circle cx="21" cy="46" r="1.5" fill="url(#mandGrad)" opacity="0.6" />
+                            <circle cx="43" cy="46" r="1.5" fill="url(#mandGrad)" opacity="0.6" />
                             <defs>
                                 <linearGradient id="mandGrad" x1="0" y1="0" x2="64" y2="64">
-                                    <stop offset="0%" stopColor="#1890ff" />
+                                    <stop offset="0%" stopColor="#005088" />
                                     <stop offset="100%" stopColor="#36cfc9" />
                                 </linearGradient>
                             </defs>
@@ -64,7 +63,7 @@ function AppHeader() {
                             size={36}
                             icon={<UserOutlined />}
                             style={{
-                                background: 'linear-gradient(135deg, #e03040 0%, #ff6b6b 100%)',
+                                background: 'linear-gradient(135deg, #005088 0%, #36cfc9 100%)',
                             }}
                         />
                         <div className="user-info">

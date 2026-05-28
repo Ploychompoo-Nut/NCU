@@ -28,10 +28,12 @@ RESULTS_DIR = SWIN_DIR / "Results"
 UPLOADS_DIR = BASE_DIR / "backend_py" / "temp" / "uploads"
 WEB_DIST_DIR = BASE_DIR / "web" / "dist"
 DATASET_DIR = SWIN_DIR / "dataset" / "test" / "image"
+PMCSEG_DIR = BASE_DIR / "PMCSeg" / "dataset"
 
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 DATASET_DIR.mkdir(parents=True, exist_ok=True)
+PMCSEG_DIR.mkdir(parents=True, exist_ok=True)
 
 class InferenceRequest(BaseModel):
     patient_id: str = "demo_patient"
@@ -114,6 +116,7 @@ def run_inference(req: InferenceRequest):
 # Mount static files
 app.mount("/api/results", StaticFiles(directory=str(RESULTS_DIR)), name="results")
 app.mount("/api/dataset", StaticFiles(directory=str(DATASET_DIR)), name="dataset")
+app.mount("/api/pmcseg", StaticFiles(directory=str(PMCSEG_DIR)), name="pmcseg")
 
 if WEB_DIST_DIR.exists():
     app.mount("/", StaticFiles(directory=str(WEB_DIST_DIR), html=True), name="frontend")

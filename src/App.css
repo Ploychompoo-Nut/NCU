@@ -79,7 +79,7 @@
 }
 
 .sider-menu .ant-menu-item-selected {
-  background: rgba(224, 48, 64, 0.25) !important;
+  background: rgba(54, 207, 201, 0.20) !important;
 }
 
 .sider-footer {
@@ -1842,6 +1842,82 @@
   text-align: center;
   background: rgba(0, 0, 0, 0.3);
   flex-shrink: 0;
+}
+
+/* ── Zoom Controls Overlay ───────────────────────────────────────────────── */
+.pd-zoom-controls {
+  position: absolute;
+  bottom: 50px;
+  right: 14px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pd-zoom-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+.pd-zoom-btn:hover {
+  background: rgba(24, 144, 255, 0.6);
+  border-color: rgba(24, 144, 255, 0.8);
+  color: #fff;
+  transform: scale(1.08);
+  box-shadow: 0 2px 12px rgba(24, 144, 255, 0.4);
+}
+.pd-zoom-btn:active {
+  transform: scale(0.96);
+}
+
+/* ── DICOM Upload Group (Folder / Archive buttons) ──────────────────────── */
+.pd-dicom-upload-group {
+  display: flex;
+  gap: 6px;
+}
+
+.pd-upload-btn--folder,
+.pd-upload-btn--archive {
+  border-radius: 8px !important;
+  font-weight: 600;
+  font-size: 13px;
+  height: 38px;
+  padding: 0 16px;
+  transition: all 0.25s ease;
+}
+
+.pd-upload-btn--folder {
+  background: linear-gradient(135deg, #1677ff 0%, #4096ff 100%) !important;
+  border: none !important;
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(22, 119, 255, 0.35);
+}
+.pd-upload-btn--folder:hover {
+  box-shadow: 0 6px 20px rgba(22, 119, 255, 0.50) !important;
+  transform: translateY(-1px);
+}
+
+.pd-upload-btn--archive {
+  background: linear-gradient(135deg, #722ed1 0%, #9254de 100%) !important;
+  border: none !important;
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(114, 46, 209, 0.35);
+}
+.pd-upload-btn--archive:hover {
+  box-shadow: 0 6px 20px rgba(114, 46, 209, 0.50) !important;
+  transform: translateY(-1px);
 }
 
 /* ── Responsive Overrides ────────────────────────────────────────────────── */

@@ -220,7 +220,16 @@ function PlaceholderScene() {
 
             <Html center position={[0, -3.5, 0]}>
                 <div className="model-placeholder-label">
-                    <div style={{ fontSize: 28, marginBottom: 8 }}>🫀</div>
+                    <div style={{ fontSize: 28, marginBottom: 8 }}>
+                        <svg width="28" height="28" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 24 C10 36, 16 48, 24 54 C29 58, 35 58, 40 54 C48 48, 54 36, 52 24 C51 20, 47 18, 45 22 C43 26, 46 36, 41 44 C37 50, 27 50, 23 44 C18 36, 21 26, 19 22 C17 18, 13 20, 12 24 Z" stroke="#36cfc9" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                          <path d="M19 22 C22 18, 24 24, 23 28 M45 22 C42 18, 40 24, 41 28" stroke="#36cfc9" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M22 42 C26 38, 38 38, 42 42" stroke="#36cfc9" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M25 40 L26 34 M29 39 L29 33 M32 39 L32 33 M35 39 L35 33 M39 40 L38 34" stroke="#36cfc9" strokeWidth="1.5" strokeLinecap="round" />
+                          <circle cx="21" cy="46" r="1.5" fill="#36cfc9" opacity="0.6" />
+                          <circle cx="43" cy="46" r="1.5" fill="#36cfc9" opacity="0.6" />
+                        </svg>
+                    </div>
                     <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>No Model Loaded</div>
                     <div style={{ fontSize: 11, opacity: 0.7, maxWidth: 220, lineHeight: 1.4 }}>
                         Place a .glb file at<br />
@@ -278,8 +287,16 @@ function VascularViewer() {
     return (
         <Card
             title={
-                <span style={{ fontWeight: 600, fontSize: 16 }}>
-                    🫀 3D Vascular Model Viewer
+                <span style={{ fontWeight: 600, fontSize: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <svg width="22" height="22" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 24 C10 36, 16 48, 24 54 C29 58, 35 58, 40 54 C48 48, 54 36, 52 24 C51 20, 47 18, 45 22 C43 26, 46 36, 41 44 C37 50, 27 50, 23 44 C18 36, 21 26, 19 22 C17 18, 13 20, 12 24 Z" stroke="#36cfc9" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="#36cfc9" fillOpacity="0.15" />
+                      <path d="M19 22 C22 18, 24 24, 23 28 M45 22 C42 18, 40 24, 41 28" stroke="#36cfc9" strokeWidth="2" strokeLinecap="round" />
+                      <path d="M22 42 C26 38, 38 38, 42 42" stroke="#36cfc9" strokeWidth="2" strokeLinecap="round" />
+                      <path d="M25 40 L26 34 M29 39 L29 33 M32 39 L32 33 M35 39 L35 33 M39 40 L38 34" stroke="#36cfc9" strokeWidth="1.5" strokeLinecap="round" />
+                      <circle cx="21" cy="46" r="1.5" fill="#36cfc9" opacity="0.6" />
+                      <circle cx="43" cy="46" r="1.5" fill="#36cfc9" opacity="0.6" />
+                    </svg>
+                    MandibleScan 3D Viewer
                 </span>
             }
             className="viewer-card"

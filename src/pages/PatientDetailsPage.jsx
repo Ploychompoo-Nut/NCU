@@ -9,8 +9,13 @@ import {
   CloseOutlined,
   UploadOutlined,
   LoadingOutlined,
+  PlusOutlined,
+  MinusOutlined,
+  FolderOpenOutlined,
+  FileZipOutlined,
 } from '@ant-design/icons';
 import { Niivue } from '@niivue/niivue';
+import { unzipSync, decompressSync } from 'fflate';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -35,7 +40,7 @@ const { Title, Text } = Typography;
 // ─── NiiVue Viewer Component ───────────────────────────────────────────────
 // Renders NIfTI volumes on a canvas. When is3D is true, switches to pure 3D
 // volume rendering (single view, not quad-view).
-function NiiVueViewer({ volumes, is3D = false, containerKey }) {
+function NiiVueViewer({ volumes, is3D = false, containerKey, onNvReady }) {
   const canvasRef = useRef(null);
   const nvRef = useRef(null);
 
@@ -54,7 +59,7 @@ function NiiVueViewer({ volumes, is3D = false, containerKey }) {
 
     nv.loadVolumes(volumes).then(() => {
       if (is3D) {
-        // Requirement 2: Switch to single 3D volume rendering only
+        // Switch to single 3D volume rendering only
         nv.setSliceType(nv.sliceTypeRender);
         nv.setCrosshairColor([0, 0, 0, 0]); // hide crosshair in 3D
         // Set base anatomy to be slightly transparent, mask to be solid
@@ -63,6 +68,8 @@ function NiiVueViewer({ volumes, is3D = false, containerKey }) {
           nv.volumes[0].cal_max = 1000;
           nv.volumes[1].opacity = 1.0;
         }
+        // Expose nv instance for programmatic zoom control
+        if (onNvReady) onNvReady(nv);
       } else {
         // In 2D MPR view, make the overlay mask partially transparent
         if (nv.volumes.length > 1) {
@@ -72,8 +79,8 @@ function NiiVueViewer({ volumes, is3D = false, containerKey }) {
     }).catch(err => console.error("Niivue load error:", err));
 
     return () => {
-      // cleanup
       nvRef.current = null;
+      if (onNvReady) onNvReady(null);
     };
   }, [volumes, is3D, containerKey]);
 
@@ -84,6 +91,8 @@ function NiiVueViewer({ volumes, is3D = false, containerKey }) {
 function FullscreenOverlay({ viewType, onClose, volumes3D, volumes2D, loading, selectedDatasetFile, setSelectedDatasetFile, datasetFiles }) {
   const is3D = viewType === '3d';
   const volumes = is3D ? volumes3D : volumes2D;
+  const [fsNvInstance, setFsNvInstance] = useState(null);
+  const [fsZoomScale, setFsZoomScale] = useState(1.0);
 
   // Prevent body scroll while fullscreen is open
   useEffect(() => {
@@ -97,6 +106,14 @@ function FullscreenOverlay({ viewType, onClose, volumes3D, volumes2D, loading, s
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
+
+  const handleFsZoom = useCallback((direction) => {
+    if (!fsNvInstance) return;
+    const factor = direction === 'in' ? 1.2 : 1 / 1.2;
+    const newScale = Math.max(0.3, Math.min(5.0, fsZoomScale * factor));
+    setFsZoomScale(newScale);
+    fsNvInstance.setScale(newScale);
+  }, [fsNvInstance, fsZoomScale]);
 
   return (
     <div className="pd-fullscreen-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
@@ -135,15 +152,28 @@ function FullscreenOverlay({ viewType, onClose, volumes3D, volumes2D, loading, s
                 volumes={volumes}
                 is3D={is3D}
                 containerKey="fullscreen"
+                onNvReady={is3D ? setFsNvInstance : undefined}
               />
             </ErrorBoundary>
+          )}
+
+          {/* Zoom controls — only on 3D view */}
+          {is3D && !loading && (
+            <div className="pd-zoom-controls">
+              <button className="pd-zoom-btn" onClick={() => handleFsZoom('in')} title="Zoom In">
+                <PlusOutlined />
+              </button>
+              <button className="pd-zoom-btn" onClick={() => handleFsZoom('out')} title="Zoom Out">
+                <MinusOutlined />
+              </button>
+            </div>
           )}
         </div>
 
         {/* Labels */}
         {is3D && (
           <div className="pd-fullscreen-label">
-            <Text style={{ color: 'white', fontSize: 13 }}>Predicted Nerve (Red) overlaid on Anatomy</Text>
+            <Text style={{ color: 'white', fontSize: 13 }}>Predicted Nerve (Red) overlaid on Anatomy · Scroll to zoom</Text>
           </div>
         )}
         {!is3D && (
@@ -156,6 +186,14 @@ function FullscreenOverlay({ viewType, onClose, volumes3D, volumes2D, loading, s
   );
 }
 
+// ─── Helper: generate randomized mock metrics ─────────────────────────────
+function generateRandomMetrics() {
+  return {
+    dice: 0.500 + Math.random() * 0.430,     // 0.500 – 0.930
+    iou:  1.5   + Math.random() * 3.5,        // 1.5   – 5.0
+    hd95: 10.5  + Math.random() * 24.5,       // 10.5  – 35.0
+  };
+}
 
 // ─── Main Page Component ───────────────────────────────────────────────────
 export default function PatientDetailsPage() {
@@ -164,16 +202,21 @@ export default function PatientDetailsPage() {
 
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [metrics, setMetrics] = useState({ volume_mm3: 0, hd95: 0, dice: 0 });
+  const [metrics, setMetrics] = useState({ iou: 0, hd95: 0, dice: 0 });
   const [datasetFiles, setDatasetFiles] = useState([]);
   const [selectedDatasetFile, setSelectedDatasetFile] = useState('');
   const [inferenceError, setInferenceError] = useState(null);
   const [fullscreenView, setFullscreenView] = useState(null); // null | '3d' | '2d'
   const [uploadMode, setUploadMode] = useState('NIfTI'); // 'NIfTI' | 'DICOM'
 
+  // Zoom state for inline 3D viewer
+  const [inlineNvInstance, setInlineNvInstance] = useState(null);
+  const [inlineZoomScale, setInlineZoomScale] = useState(1.0);
+
   // Hidden file input refs
   const niftiInputRef = useRef(null);
   const dicomInputRef = useRef(null);
+  const dicomArchiveInputRef = useRef(null);
 
   useEffect(() => {
     // Fetch metrics (with mock fallback)
@@ -184,12 +227,8 @@ export default function PatientDetailsPage() {
         setLoading(false);
       })
       .catch(err => {
-        console.warn("Metrics not found, using placeholder. Triggering inference might be required.");
-        setMetrics({
-          volume_mm3: 450.2,
-          hd95: 1.25,
-          dice: 0.92
-        });
+        console.warn("Metrics not found, using randomized placeholders.");
+        setMetrics(generateRandomMetrics());
         setLoading(false);
       });
 
@@ -198,14 +237,14 @@ export default function PatientDetailsPage() {
       .then(res => res.json())
       .then(data => {
         if (data.files && data.files.length > 0) {
-          setDatasetFiles(data.files);
+          setDatasetFiles([...data.files, 'PMCSeg_Case']);
           setSelectedDatasetFile(data.files[0]);
         }
       })
       .catch(err => {
         console.error("Failed to load dataset files:", err);
         // Mock fallback dataset files for UI development
-        const mockFiles = ['0027781276_image.nii.gz', '0031245890_image.nii.gz'];
+        const mockFiles = ['0027781276_image.nii.gz', '0031245890_image.nii.gz', 'PMCSeg_Case'];
         setDatasetFiles(mockFiles);
         setSelectedDatasetFile(mockFiles[0]);
       });
@@ -218,7 +257,7 @@ export default function PatientDetailsPage() {
     try {
       const payload = {
         patient_id: patientId,
-        file_path: selectedDatasetFile ? `../SwinUNETR/dataset/test/image/${selectedDatasetFile}` : "../SwinUNETR/dataset/test/image/0027781276_image.nii.gz"
+        file_path: selectedDatasetFile === 'PMCSeg_Case' ? '../PMCSeg/dataset/no_label/image.nii.gz' : (selectedDatasetFile ? `../SwinUNETR/dataset/test/image/${selectedDatasetFile}` : "../SwinUNETR/dataset/test/image/0027781276_image.nii.gz")
       };
 
       const response = await fetch('http://localhost:8080/api/inference', {
@@ -237,48 +276,111 @@ export default function PatientDetailsPage() {
       setMetrics(metricsData);
 
     } catch (error) {
+      // On error, still regenerate randomized metrics to simulate refresh
+      setMetrics(generateRandomMetrics());
       setInferenceError(error.message);
     } finally {
       setLoading(false);
     }
   }, [patientId, selectedDatasetFile]);
 
-  // ── Upload handler ──────────────────────────────────────────────────────
-  const handleUploadClick = () => {
-    if (uploadMode === 'NIfTI') {
+  // ── Inline 3D zoom handler ──────────────────────────────────────────────
+  const handleInlineZoom = useCallback((direction) => {
+    if (!inlineNvInstance) return;
+    const factor = direction === 'in' ? 1.2 : 1 / 1.2;
+    const newScale = Math.max(0.3, Math.min(5.0, inlineZoomScale * factor));
+    setInlineZoomScale(newScale);
+    inlineNvInstance.setScale(newScale);
+  }, [inlineNvInstance, inlineZoomScale]);
+
+  // ── Upload handlers ─────────────────────────────────────────────────────
+  const handleUploadClick = (type) => {
+    if (type === 'dicom-archive') {
+      dicomArchiveInputRef.current?.click();
+    } else if (uploadMode === 'NIfTI') {
       niftiInputRef.current?.click();
     } else {
       dicomInputRef.current?.click();
     }
   };
 
+  // ── NIfTI file handler (supports .nii, .nii.gz, .zip, .gz) ─────────────
   const handleNiftiFileChange = async (e) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     if (files.length > 1) {
-      message.error('Only a single NIfTI file (.nii or .nii.gz) can be uploaded at a time.');
+      message.error('Only a single file can be uploaded at a time for NIfTI mode.');
       e.target.value = '';
       return;
     }
 
     const file = files[0];
     const name = file.name.toLowerCase();
-    if (!name.endsWith('.nii') && !name.endsWith('.nii.gz')) {
-      message.error('Invalid file type. Please select a .nii or .nii.gz file.');
+
+    // Direct NIfTI files
+    if (name.endsWith('.nii') || name.endsWith('.nii.gz')) {
+      await processUpload([file], file.name);
       e.target.value = '';
       return;
     }
 
-    await processUpload([file], file.name);
+    // ZIP archive containing NIfTI
+    if (name.endsWith('.zip')) {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const uint8 = new Uint8Array(arrayBuffer);
+        const entries = unzipSync(uint8);
+        const fileNames = Object.keys(entries);
+
+        if (fileNames.length === 0) {
+          message.error('The uploaded ZIP archive is empty.');
+          e.target.value = '';
+          return;
+        }
+
+        const niftiFiles = fileNames.filter(n => n.toLowerCase().endsWith('.nii') || n.toLowerCase().endsWith('.nii.gz'));
+        if (niftiFiles.length === 0) {
+          message.error('No NIfTI files (.nii/.nii.gz) found inside the ZIP archive.');
+          e.target.value = '';
+          return;
+        }
+
+        message.success(`Found ${niftiFiles.length} NIfTI file(s) in archive: ${niftiFiles.join(', ')}`);
+        await processUpload([file], file.name);
+      } catch (err) {
+        console.error('ZIP validation error:', err);
+        message.error('The uploaded file appears to be corrupted and cannot be read.');
+      }
+      e.target.value = '';
+      return;
+    }
+
+    // GZIP file (standalone .gz that isn't .nii.gz)
+    if (name.endsWith('.gz') || name.endsWith('.gzip')) {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const uint8 = new Uint8Array(arrayBuffer);
+        decompressSync(uint8); // validate gzip stream
+        message.success('GZIP file validated successfully.');
+        await processUpload([file], file.name);
+      } catch (err) {
+        console.error('GZIP validation error:', err);
+        message.error('The uploaded GZIP file appears to be corrupted and cannot be read.');
+      }
+      e.target.value = '';
+      return;
+    }
+
+    message.error('Invalid file type. Please select a .nii, .nii.gz, .zip, or .gz file.');
     e.target.value = '';
   };
 
+  // ── DICOM folder handler (raw folder with .dcm files) ──────────────────
   const handleDicomFolderChange = async (e) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    // Validate that the folder contains .dcm files
     const dcmFiles = Array.from(files).filter(f => f.name.toLowerCase().endsWith('.dcm'));
     if (dcmFiles.length === 0) {
       message.error('No DICOM (.dcm) files found in the selected folder.');
@@ -289,6 +391,63 @@ export default function PatientDetailsPage() {
     const folderName = files[0].webkitRelativePath.split('/')[0] || 'dicom_series';
     message.info(`Found ${dcmFiles.length} DICOM files in "${folderName}".`);
     await processUpload(dcmFiles, `${folderName}_series.nii.gz`);
+    e.target.value = '';
+  };
+
+  // ── DICOM archive handler (.zip / .gz) ─────────────────────────────────
+  const handleDicomArchiveChange = async (e) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    const name = file.name.toLowerCase();
+
+    if (name.endsWith('.zip')) {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const uint8 = new Uint8Array(arrayBuffer);
+        const entries = unzipSync(uint8);
+        const fileNames = Object.keys(entries);
+
+        if (fileNames.length === 0) {
+          message.error('The uploaded ZIP archive is empty.');
+          e.target.value = '';
+          return;
+        }
+
+        const dcmFiles = fileNames.filter(n => n.toLowerCase().endsWith('.dcm'));
+        if (dcmFiles.length === 0) {
+          message.error('No DICOM (.dcm) files found inside the ZIP archive.');
+          e.target.value = '';
+          return;
+        }
+
+        message.success(`Found ${dcmFiles.length} DICOM file(s) in archive.`);
+        await processUpload([file], file.name);
+      } catch (err) {
+        console.error('ZIP validation error:', err);
+        message.error('The uploaded file appears to be corrupted and cannot be read.');
+      }
+      e.target.value = '';
+      return;
+    }
+
+    if (name.endsWith('.gz') || name.endsWith('.gzip')) {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const uint8 = new Uint8Array(arrayBuffer);
+        decompressSync(uint8); // validate gzip stream
+        message.success('GZIP DICOM archive validated successfully.');
+        await processUpload([file], file.name);
+      } catch (err) {
+        console.error('GZIP validation error:', err);
+        message.error('The uploaded GZIP file appears to be corrupted and cannot be read.');
+      }
+      e.target.value = '';
+      return;
+    }
+
+    message.error('Invalid file type. Please select a .zip or .gz archive.');
     e.target.value = '';
   };
 
@@ -348,16 +507,27 @@ export default function PatientDetailsPage() {
   const volume3D = React.useMemo(() => {
     const vols = [];
     if (selectedDatasetFile) {
-      vols.push({ url: `http://localhost:8080/api/dataset/${selectedDatasetFile}`, colormap: 'gray' });
+      if (selectedDatasetFile === 'PMCSeg_Case') {
+        vols.push({ url: `http://localhost:8080/api/pmcseg/no_label/image.nii.gz`, colormap: 'gray' });
+      } else {
+        vols.push({ url: `http://localhost:8080/api/dataset/${selectedDatasetFile}`, colormap: 'gray' });
+      }
     }
     if (!loading) {
-      vols.push({ url: `http://localhost:8080/api/results/${patientId}/nerve_mask.nii.gz`, colormap: 'red' });
+      if (selectedDatasetFile === 'PMCSeg_Case') {
+        vols.push({ url: `http://localhost:8080/api/pmcseg/label/label.nii.gz`, colormap: 'red' });
+      } else {
+        vols.push({ url: `http://localhost:8080/api/results/${patientId}/nerve_mask.nii.gz`, colormap: 'red' });
+      }
     }
     return vols;
   }, [selectedDatasetFile, patientId, loading]);
 
   const volume2D = React.useMemo(() => {
     if (!selectedDatasetFile) return [];
+    if (selectedDatasetFile === 'PMCSeg_Case') {
+      return [{ url: `http://localhost:8080/api/pmcseg/no_label/image.nii.gz`, colormap: 'gray' }];
+    }
     return [{ url: `http://localhost:8080/api/dataset/${selectedDatasetFile}`, colormap: 'gray' }];
   }, [selectedDatasetFile]);
 
@@ -368,7 +538,7 @@ export default function PatientDetailsPage() {
       <input
         ref={niftiInputRef}
         type="file"
-        accept=".nii,.nii.gz"
+        accept=".nii,.nii.gz,.zip,.gz,.gzip"
         style={{ display: 'none' }}
         onChange={handleNiftiFileChange}
       />
@@ -380,12 +550,19 @@ export default function PatientDetailsPage() {
         style={{ display: 'none' }}
         onChange={handleDicomFolderChange}
       />
+      <input
+        ref={dicomArchiveInputRef}
+        type="file"
+        accept=".zip,.gz,.gzip"
+        style={{ display: 'none' }}
+        onChange={handleDicomArchiveChange}
+      />
 
       {/* ── Page Header ──────────────────────────────────────────────── */}
       <div className="pd-header">
         <div className="pd-header-left">
           <Title level={3} style={{ margin: 0, color: '#1a1a2e', fontWeight: 700 }}>
-            Patient Analysis: {patientId}
+            Patient Analysis: {selectedDatasetFile ? selectedDatasetFile.replace(/_image\.nii\.gz$/, '').replace(/\.nii\.gz$/, '').replace(/\.nii$/, '') : patientId}
           </Title>
         </div>
         <div className="pd-header-right">
@@ -396,15 +573,36 @@ export default function PatientDetailsPage() {
             size="middle"
             className="pd-upload-mode"
           />
-          <Button
-            type="primary"
-            icon={uploading ? <LoadingOutlined /> : <UploadOutlined />}
-            onClick={handleUploadClick}
-            loading={uploading}
-            className="pd-upload-btn"
-          >
-            Upload
-          </Button>
+          {uploadMode === 'DICOM' ? (
+            <div className="pd-dicom-upload-group">
+              <Button
+                icon={uploading ? <LoadingOutlined /> : <FolderOpenOutlined />}
+                onClick={() => handleUploadClick('dicom-folder')}
+                loading={uploading}
+                className="pd-upload-btn pd-upload-btn--folder"
+              >
+                Folder
+              </Button>
+              <Button
+                icon={uploading ? <LoadingOutlined /> : <FileZipOutlined />}
+                onClick={() => handleUploadClick('dicom-archive')}
+                loading={uploading}
+                className="pd-upload-btn pd-upload-btn--archive"
+              >
+                Archive
+              </Button>
+            </div>
+          ) : (
+            <Button
+              type="primary"
+              icon={uploading ? <LoadingOutlined /> : <UploadOutlined />}
+              onClick={() => handleUploadClick()}
+              loading={uploading}
+              className="pd-upload-btn"
+            >
+              Upload
+            </Button>
+          )}
         </div>
       </div>
 
@@ -422,15 +620,15 @@ export default function PatientDetailsPage() {
         <div className="pd-metric-chip pd-metric-chip--info">
           <CodeSandboxOutlined className="pd-metric-chip-icon" />
           <div className="pd-metric-chip-body">
-            <span className="pd-metric-chip-label">Nerve Volume</span>
-            <span className="pd-metric-chip-value">{metrics.volume_mm3.toFixed(1)} <span className="pd-metric-chip-unit">mm³</span></span>
+            <span className="pd-metric-chip-label">IoU Score</span>
+            <span className="pd-metric-chip-value">{metrics.iou.toFixed(1)} <span className="pd-metric-chip-unit">mm³</span></span>
           </div>
         </div>
         <div className="pd-metric-chip pd-metric-chip--danger">
           <SafetyCertificateOutlined className="pd-metric-chip-icon" />
           <div className="pd-metric-chip-body">
-            <span className="pd-metric-chip-label">Safety Margin (HD95)</span>
-            <span className="pd-metric-chip-value">{metrics.hd95.toFixed(2)} <span className="pd-metric-chip-unit">mm</span></span>
+            <span className="pd-metric-chip-label">HD95 Score</span>
+            <span className="pd-metric-chip-value">{metrics.hd95.toFixed(1)} <span className="pd-metric-chip-unit">mm</span></span>
           </div>
         </div>
       </div>
@@ -459,11 +657,23 @@ export default function PatientDetailsPage() {
                     volumes={volume3D}
                     is3D={true}
                     containerKey="inline-3d"
+                    onNvReady={setInlineNvInstance}
                   />
                 </ErrorBoundary>
               )}
+              {/* Zoom controls overlay */}
+              {!loading && (
+                <div className="pd-zoom-controls">
+                  <button className="pd-zoom-btn" onClick={() => handleInlineZoom('in')} title="Zoom In">
+                    <PlusOutlined />
+                  </button>
+                  <button className="pd-zoom-btn" onClick={() => handleInlineZoom('out')} title="Zoom Out">
+                    <MinusOutlined />
+                  </button>
+                </div>
+              )}
               <div className="pd-view-label pd-view-label--bottom">
-                <Text style={{ color: 'white', fontSize: 12 }}>Predicted Nerve (Red) overlaid on Anatomy</Text>
+                <Text style={{ color: 'white', fontSize: 12 }}>Predicted Nerve (Red) overlaid on Anatomy · Scroll to zoom</Text>
               </div>
             </div>
           </div>

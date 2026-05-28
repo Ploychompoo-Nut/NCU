@@ -90,14 +90,12 @@ function AppLayout() {
           style={{ cursor: 'pointer' }}
         >
           <svg className="sider-logo-icon" width="28" height="28" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-            {/* Mandible / Lower Jaw SVG */}
-            <path d="M32 8C24 8 18 12 15 18C12 24 10 30 10 36C10 40 12 44 16 46C18 47 20 48 22 48C24 48 26 47 27 45L28 42C29 39 30 38 32 38C34 38 35 39 36 42L37 45C38 47 40 48 42 48C44 48 46 47 48 46C52 44 54 40 54 36C54 30 52 24 49 18C46 12 40 8 32 8Z"
-              stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-            <path d="M20 28C20 26 21 24 23 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
-            <path d="M44 28C44 26 43 24 41 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
-            <circle cx="23" cy="30" r="2" fill="currentColor" opacity="0.5" />
-            <circle cx="41" cy="30" r="2" fill="currentColor" opacity="0.5" />
-            <path d="M26 36H38" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.4" />
+            <path d="M12 24 C10 36, 16 48, 24 54 C29 58, 35 58, 40 54 C48 48, 54 36, 52 24 C51 20, 47 18, 45 22 C43 26, 46 36, 41 44 C37 50, 27 50, 23 44 C18 36, 21 26, 19 22 C17 18, 13 20, 12 24 Z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+            <path d="M19 22 C22 18, 24 24, 23 28 M45 22 C42 18, 40 24, 41 28" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <path d="M22 42 C26 38, 38 38, 42 42" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <path d="M25 40 L26 34 M29 39 L29 33 M32 39 L32 33 M35 39 L35 33 M39 40 L38 34" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            <circle cx="21" cy="46" r="1.5" fill="currentColor" opacity="0.6" />
+            <circle cx="43" cy="46" r="1.5" fill="currentColor" opacity="0.6" />
           </svg>
           {!collapsed && <span className="sider-logo-text">MandibleScan 3D</span>}
         </div>
@@ -178,7 +176,7 @@ function App() {
       theme={{
         token: {
           fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-          colorPrimary: '#e03040',
+          colorPrimary: '#005088',
           borderRadius: 8,
         },
         algorithm: theme.defaultAlgorithm,
